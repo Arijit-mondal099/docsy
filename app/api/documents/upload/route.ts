@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { documents } from '@/lib/db/schema';
 import { uploadPdf } from '@/lib/cloudinary';
 import { processPdf } from '@/lib/ai/embedding';
-import { checkDocumentUploadAllowed, incrementDocumentsUploaded } from '@/lib/db/usage';
+import { tryIncrementDocumentsUploaded, checkDocumentUploadAllowed } from '@/lib/db/usage';
 import { eq } from 'drizzle-orm';
 
 export const maxDuration = 120; // 2 minutes for long-running uploads
@@ -19,10 +19,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Check usage limit
-  const { allowed, reason } = await checkDocumentUploadAllowed(session.user.id);
-  if (!allowed) {
-    return NextResponse.json({ error: reason }, { status: 429 });
+  // Fast early check (best-effort; atomic check happens after processing succeeds)
+  const { allowed: earlyOk } = await checkDocumentUploadAllowed(session.user.id);
+  if (!earlyOk) {
+    return NextResponse.json({ error: 'Upload limit reached' }, { status: 429 });
   }
 
   // Parse form data
@@ -68,15 +68,31 @@ export async function POST(request: NextRequest) {
           .update(documents)
           .set({ status: 'ready', pageCount: chunkCount })
           .where(eq(documents.id, doc.id));
-        // Only count toward usage limit after successful processing
-        await incrementDocumentsUploaded(session.user.id);
+        // Atomic check-and-increment usage after successful processing
+        const { allowed } = await tryIncrementDocumentsUploaded(session.user.id);
+        if (!allowed) {
+          // Race condition: limit reached during processing. Mark as error.
+          await db.update(documents).set({ status: 'error' }).where(eq(documents.id, doc.id));
+          return;
+        }
       })
       .catch(async (error) => {
-        console.error('PDF processing failed:', error);
+        console.error('PDF processing failed for document', doc.id, ':', error);
         try {
-          await db.update(documents).set({ status: 'error' }).where(eq(documents.id, doc.id));
+          const updateResult = await db
+            .update(documents)
+            .set({ status: 'error' })
+            .where(eq(documents.id, doc.id))
+            .returning({ id: documents.id });
+          if (updateResult.length === 0) {
+            console.error(
+              'Document',
+              doc.id,
+              'not found during error status update — may have been deleted',
+            );
+          }
         } catch (updateError) {
-          console.error('Failed to update document status:', updateError);
+          console.error('Failed to update document status for', doc.id, ':', updateError);
         }
       });
 

@@ -18,18 +18,17 @@ export default async function proxy(request: NextRequest) {
 
   // Try to get session via the auth API
   try {
-    const response = await fetch(
-      new URL('/api/auth/get-session', request.url),
-      {
-        headers: {
-          cookie: request.headers.get('cookie') || '',
-        },
+    const response = await fetch(new URL('/api/auth/get-session', request.url), {
+      headers: {
+        cookie: request.headers.get('cookie') || '',
       },
-    );
+    });
 
     if (response.ok) {
       const data = await response.json();
-      if (data?.user) {
+      // Handle both { user: {...} } and direct user object responses
+      const user = data?.user ?? data;
+      if (user && typeof user === 'object' && 'id' in user) {
         return NextResponse.next();
       }
     }

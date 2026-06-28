@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { chats, messages } from '@/lib/db/schema';
 import { searchDocumentChunks, getChatModel } from '@/lib/ai/rag';
 import { streamText } from 'ai';
-import { checkMessageAllowed, incrementMessagesSent } from '@/lib/db/usage';
+import { tryIncrementMessagesSent } from '@/lib/db/usage';
 import { eq } from 'drizzle-orm';
 
 export const maxDuration = 60;
@@ -20,18 +20,11 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Check message usage limit
-  const { allowed, reason } = await checkMessageAllowed(session.user.id);
-  if (!allowed) {
-    return new Response(JSON.stringify({ error: reason }), {
-      status: 429,
-    });
-  }
-
   const { messages: incomingMessages, id: chatId, documentId } = await request.json();
-  const lastUserMessage = incomingMessages?.findLast(
-    (m: { role: string }) => m.role === 'user',
-  )?.content;
+  const lastUserMessage = incomingMessages
+    ?.slice()
+    .reverse()
+    .find((m: { role: string }) => m.role === 'user')?.content;
 
   if (!lastUserMessage) {
     return new Response(JSON.stringify({ error: 'No user message found' }), { status: 400 });
@@ -113,9 +106,13 @@ If the answer cannot be found in the context, say so clearly. Do not make up inf
 Context from the document:
 ${contextText}`;
 
-    // Increment usage counter before streaming
-    // This ensures the counter is always updated for messages that reach this point
-    await incrementMessagesSent(session.user.id);
+    // Atomic check-and-increment usage counter before streaming
+    const { allowed, reason } = await tryIncrementMessagesSent(session.user.id);
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: reason }), {
+        status: 429,
+      });
+    }
 
     // Try primary model, fallback to Gemini on error
     let useFallback = false;

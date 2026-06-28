@@ -1,12 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { auth } from '@/lib/auth/config';
 import { headers } from 'next/headers';
 
@@ -19,18 +13,14 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">
           Welcome{session?.user.name ? `, ${session.user.name}` : ''}!
         </h1>
-        <p className="text-muted-foreground">
-          Upload your first PDF and start asking questions.
-        </p>
+        <p className="text-muted-foreground">Upload your first PDF and start asking questions.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="border-dashed">
           <CardHeader>
             <CardTitle>Upload a PDF</CardTitle>
-            <CardDescription>
-              Drag and drop or click to browse
-            </CardDescription>
+            <CardDescription>Drag and drop or click to browse</CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/documents">
@@ -60,7 +50,7 @@ export default async function DashboardPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Documents</span>
-                <span className="font-medium">0 / 3</span>
+                <span className="font-medium">0 / 5</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Messages</span>

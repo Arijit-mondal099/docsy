@@ -32,6 +32,7 @@ export function ChatPanel({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pdfLoaded, setPdfLoaded] = useState(false);
+  const [pdfError, setPdfError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastSentRef = useRef<string>('');
 
@@ -109,6 +110,8 @@ export function ChatPanel({
           });
         }
       } catch (err) {
+        // Remove empty assistant placeholder on failure so retry doesn't send corrupted history
+        setMessages((prev) => prev.filter((m) => !(m.role === 'assistant' && m.content === '')));
         const message = err instanceof Error ? err.message : 'Something went wrong';
         setError(message);
       } finally {
@@ -134,17 +137,28 @@ export function ChatPanel({
             <h2 className="truncate text-sm font-medium">{documentName || 'Document'}</h2>
           </div>
           <div className="relative flex-1">
-            {!pdfLoaded && (
+            {!pdfLoaded && !pdfError && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Skeleton className="h-full w-full rounded-none" />
               </div>
             )}
-            <iframe
-              src={documentUrl}
-              className="h-full w-full"
-              title="PDF Viewer"
-              onLoad={() => setPdfLoaded(true)}
-            />
+            {pdfError ? (
+              <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
+                Failed to load PDF preview. The document may have been removed or the URL has
+                expired.
+              </div>
+            ) : (
+              <iframe
+                src={documentUrl}
+                className="h-full w-full"
+                title="PDF Viewer"
+                onLoad={() => setPdfLoaded(true)}
+                onError={() => {
+                  setPdfError(true);
+                  setPdfLoaded(true);
+                }}
+              />
+            )}
           </div>
         </div>
       )}
@@ -171,7 +185,7 @@ export function ChatPanel({
             <MessageBubble key={msg.id} role={msg.role} content={msg.content} />
           ))}
 
-          {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
+          {isLoading && !error && messages[messages.length - 1]?.role !== 'assistant' && (
             <MessageBubble role="assistant" content="" isLoading />
           )}
 

@@ -47,7 +47,11 @@ export function Sidebar({ userName, userEmail, userInitial, isSheet, onNavClick 
   });
 
   const handleLogout = async () => {
-    await authClient.signOut();
+    try {
+      await authClient.signOut();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
     router.push('/');
   };
 

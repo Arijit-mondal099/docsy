@@ -16,6 +16,7 @@ export function UploadDropzone() {
     onSuccess: () => {
       toast.success('Document uploaded successfully');
       queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['usage'] });
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Upload failed');
@@ -81,20 +82,14 @@ export function UploadDropzone() {
         {mutation.isPending ? (
           <div className="space-y-1">
             <p className="text-sm font-medium">Uploading...</p>
-            <p className="text-xs text-muted-foreground">
-              Your PDF is being processed
-            </p>
+            <p className="text-xs text-muted-foreground">Your PDF is being processed</p>
           </div>
         ) : (
           <div className="space-y-1">
             <p className="text-sm font-medium">
-              {isDragActive
-                ? 'Drop your PDF here'
-                : 'Drag & drop your PDF here'}
+              {isDragActive ? 'Drop your PDF here' : 'Drag & drop your PDF here'}
             </p>
-            <p className="text-xs text-muted-foreground">
-              or click to browse (max 10MB)
-            </p>
+            <p className="text-xs text-muted-foreground">or click to browse (max 10MB)</p>
           </div>
         )}
         {!mutation.isPending && (
