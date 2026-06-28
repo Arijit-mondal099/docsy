@@ -16,14 +16,29 @@ const textSplitter = new RecursiveCharacterTextSplitter({
   chunkOverlap: 200,
 });
 
+let embeddingsInstance: OpenAIEmbeddings | null = null;
+
+function getEmbeddings(): OpenAIEmbeddings {
+  if (!embeddingsInstance) {
+    embeddingsInstance = new OpenAIEmbeddings({
+      model: embeddingModel,
+      openAIApiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return embeddingsInstance;
+}
+
+export async function getEmbedding(text: string): Promise<number[]> {
+  const embeddings = getEmbeddings();
+  const [vector] = await embeddings.embedDocuments([text]);
+  return vector;
+}
+
 export async function processPdf(
   pdfUrl: string,
   documentId: string,
 ): Promise<number> {
-  const embeddings = new OpenAIEmbeddings({
-    model: embeddingModel,
-    openAIApiKey: process.env.OPENAI_API_KEY,
-  });
+  const embeddings = getEmbeddings();
 
   // Fetch PDF
   const response = await fetch(pdfUrl);
