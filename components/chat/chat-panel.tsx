@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Message {
   id: string;
@@ -29,7 +31,9 @@ export function ChatPanel({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pdfLoaded, setPdfLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastSentRef = useRef<string>('');
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,6 +44,7 @@ export function ChatPanel({
       if (!content.trim() || isLoading) return;
 
       setError(null);
+      lastSentRef.current = content;
 
       const userMessage: Message = {
         id: crypto.randomUUID(),
@@ -104,37 +109,51 @@ export function ChatPanel({
           });
         }
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Something went wrong';
+        const message = err instanceof Error ? err.message : 'Something went wrong';
         setError(message);
       } finally {
         setIsLoading(false);
       }
     },
+
     [messages, isLoading, chatId, documentId],
   );
 
+  const handleRetry = () => {
+    if (lastSentRef.current) {
+      handleSend(lastSentRef.current);
+    }
+  };
+
   return (
     <div className="flex h-full flex-col md:flex-row">
-      {/* PDF Viewer (left) */}
+      {/* PDF Viewer (left, stacked on top on mobile) */}
       {documentUrl && (
-        <div className="hidden h-full w-full border-r md:block md:w-1/2">
-          <div className="flex h-14 items-center border-b px-4">
-            <h2 className="truncate text-sm font-medium">
-              {documentName || 'Document'}
-            </h2>
+        <div className="flex h-1/2 flex-col border-b md:h-full md:w-1/2 md:border-b-0 md:border-r">
+          <div className="flex h-14 shrink-0 items-center border-b px-4">
+            <h2 className="truncate text-sm font-medium">{documentName || 'Document'}</h2>
           </div>
-          <iframe
-            src={documentUrl}
-            className="h-[calc(100%-3.5rem)] w-full"
-            title="PDF Viewer"
-          />
+          <div className="relative flex-1">
+            {!pdfLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Skeleton className="h-full w-full rounded-none" />
+              </div>
+            )}
+            <iframe
+              src={documentUrl}
+              className="h-full w-full"
+              title="PDF Viewer"
+              onLoad={() => setPdfLoaded(true)}
+            />
+          </div>
         </div>
       )}
 
-      {/* Chat Panel (right) */}
-      <div className="flex h-full w-full flex-col md:w-1/2">
-        <div className="flex h-14 items-center border-b px-4">
+      {/* Chat Panel (right, bottom on mobile) */}
+      <div
+        className={`flex h-full flex-col ${documentUrl ? 'h-1/2 md:h-full md:w-1/2' : 'w-full'}`}
+      >
+        <div className="flex h-14 shrink-0 items-center border-b px-4">
           <h2 className="text-sm font-medium">Chat</h2>
         </div>
 
@@ -152,14 +171,31 @@ export function ChatPanel({
             <MessageBubble key={msg.id} role={msg.role} content={msg.content} />
           ))}
 
-          {isLoading &&
-            messages[messages.length - 1]?.role !== 'assistant' && (
-              <MessageBubble role="assistant" content="" isLoading />
-            )}
+          {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
+            <MessageBubble role="assistant" content="" isLoading />
+          )}
 
           {error && (
-            <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
+            <div className="space-y-2">
+              <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+                {error}
+              </div>
+              <Button variant="outline" size="sm" onClick={handleRetry} className="text-xs">
+                <svg
+                  className="mr-1.5 h-3.5 w-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"
+                  />
+                </svg>
+                Retry
+              </Button>
             </div>
           )}
 
