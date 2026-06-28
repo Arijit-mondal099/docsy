@@ -1,0 +1,50 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/deepseek-v4-flash-free",
+  "small_model": "opencode/nemotron-3-ultra-free",
+  "default_agent": "dev",
+  "instructions": [
+    "AGENTS.md"
+  ],
+  "autoupdate": "notify",
+  "share": "manual",
+  "snapshot": true,
+  "command": {
+    "investigate": {
+      "description": "Read and map the codebase before implementing anything",
+      "template": "Run the /investigate workflow on: $ARGUMENTS"
+    },
+    "review": {
+      "description": "Pre-commit code review gate — surface issues before they merge",
+      "template": "Run the /review workflow on the current diff"
+    },
+    "commit": {
+      "description": "Audit, validate, and commit staged changes with a clean conventional commit",
+      "template": "Run the /commit workflow"
+    },
+    "pr": {
+      "description": "Generate a full PR body and GitHub compare URL — no gh CLI needed",
+      "template": "Run the /pr workflow for the current branch against main"
+    }
+  },
+  "agent": {
+    "dev": {
+      "model": "opencode/deepseek-v4-flash-free"
+    },
+    "reviewer": {
+      "model": "opencode/nemotron-3-ultra-free"
+    },
+    "debugger": {
+      "model": "opencode/nemotron-3-ultra-free"
+    },
+    "git": {
+      "model": "opencode/deepseek-v4-flash-free"
+    },
+    "db": {
+      "model": "opencode/nemotron-3-ultra-free"
+    },
+    "ai-engineer": {
+      "model": "opencode/nemotron-3-ultra-free"
+    }
+  }
+}
