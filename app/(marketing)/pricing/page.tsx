@@ -14,7 +14,7 @@ const plans = [
     name: 'Free',
     price: '$0',
     description: 'Perfect for getting started',
-    features: ['3 documents', '50 messages per month', 'Basic AI model'],
+    features: ['5 documents', '50 messages per month', 'Basic AI model'],
     cta: 'Get Started',
     href: '/register',
   },
@@ -23,12 +23,7 @@ const plans = [
     price: '$19',
     period: '/month',
     description: 'For power users',
-    features: [
-      'Unlimited documents',
-      'Unlimited messages',
-      'GPT-4o + Gemini',
-      'Priority support',
-    ],
+    features: ['Unlimited documents', 'Unlimited messages', 'GPT-4o + Gemini', 'Priority support'],
     cta: 'Subscribe',
     href: '/register',
     popular: true,
@@ -48,9 +43,7 @@ export default function PricingPage() {
         {plans.map((plan) => (
           <Card
             key={plan.name}
-            className={`w-full max-w-sm ${
-              plan.popular ? 'border-primary shadow-lg' : ''
-            }`}
+            className={`w-full max-w-sm ${plan.popular ? 'border-primary shadow-lg' : ''}`}
           >
             <CardHeader>
               {plan.popular && (
@@ -64,9 +57,7 @@ export default function PricingPage() {
             <CardContent className="space-y-6">
               <div className="flex items-baseline gap-1">
                 <span className="text-4xl font-bold">{plan.price}</span>
-                {plan.period && (
-                  <span className="text-muted-foreground">{plan.period}</span>
-                )}
+                {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
               </div>
               <ul className="space-y-2">
                 {plan.features.map((feature) => (
@@ -91,10 +82,7 @@ export default function PricingPage() {
             </CardContent>
             <CardFooter>
               <Link href={plan.href} className="w-full">
-                <Button
-                  variant={plan.popular ? 'default' : 'outline'}
-                  className="w-full"
-                >
+                <Button variant={plan.popular ? 'default' : 'outline'} className="w-full">
                   {plan.cta}
                 </Button>
               </Link>

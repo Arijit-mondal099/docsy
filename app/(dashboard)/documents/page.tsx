@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { fetchDocuments, deleteDocument, type Document } from '@/lib/api';
@@ -43,6 +44,7 @@ const statusBadge = (status: Document['status']) => {
 export default function DocumentsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { data: docs, isLoading } = useQuery({
     queryKey: ['documents'],
@@ -50,7 +52,10 @@ export default function DocumentsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: deleteDocument,
+    mutationFn: async (id: string) => {
+      setDeletingId(id);
+      await deleteDocument(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       queryClient.invalidateQueries({ queryKey: ['usage'] });
@@ -58,6 +63,9 @@ export default function DocumentsPage() {
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to delete document');
+    },
+    onSettled: () => {
+      setDeletingId(null);
     },
   });
 
@@ -232,7 +240,7 @@ export default function DocumentsPage() {
                             onClick={() => deleteMutation.mutate(doc.id)}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
-                            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                            {deletingId === doc.id ? 'Deleting...' : 'Delete'}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
