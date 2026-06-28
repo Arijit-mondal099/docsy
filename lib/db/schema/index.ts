@@ -1,11 +1,4 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  integer,
-  pgEnum,
-} from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, integer, pgEnum } from 'drizzle-orm/pg-core';
 
 // ── Enums ──
 
@@ -40,6 +33,17 @@ export const documents = pgTable('documents', {
   status: documentStatusEnum('status').default('pending').notNull(),
   pageCount: integer('page_count'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ── Usage ──
+
+export const usage = pgTable('usage', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  documentsUploaded: integer('documents_uploaded').default(0).notNull(),
+  messagesSent: integer('messages_sent').default(0).notNull(),
+  resetDate: timestamp('reset_date').defaultNow().notNull(),
 });
 
 // ── Chats ──
