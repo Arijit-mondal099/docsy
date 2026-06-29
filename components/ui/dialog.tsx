@@ -52,7 +52,7 @@ function DialogContent({
         className={cn('fixed inset-0 z-50 flex items-center justify-center p-4', className)}
         {...props}
       >
-        <div className="flex w-full max-w-md flex-col gap-4 rounded-xl border bg-popover bg-clip-padding p-6 text-sm text-popover-foreground shadow-lg transition-all duration-200 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0">
+        <div className="relative flex w-full max-w-md flex-col gap-4 rounded-xl border bg-popover bg-clip-padding p-6 text-sm text-popover-foreground shadow-lg transition-all duration-200 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0">
           {children}
           {showCloseButton && (
             <DialogPrimitive.Close

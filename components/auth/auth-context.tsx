@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthModalContext.Provider value={{ openSignIn, openSignUp, closeAuthModal }}>
       {children}
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={setIsOpen} modal={false}>
         <DialogContent>
           <AuthModal mode={mode} onModeChange={setMode} onSuccess={closeAuthModal} />
         </DialogContent>
