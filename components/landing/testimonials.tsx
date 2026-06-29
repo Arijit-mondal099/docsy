@@ -97,7 +97,7 @@ export function Testimonials() {
           role="list"
           aria-label="Testimonials carousel"
         >
-          <div className="flex animate-[marquee_40s_linear_infinite] gap-6 px-3 will-change-transform motion-reduce:animate-none group-hover/track:[animation-play-state:paused]">
+          <div className="flex animate-marquee gap-6 px-3 will-change-transform motion-reduce:animate-none group-hover/track:[animation-play-state:paused]">
             {duplicatedList.map((t, i) => (
               <TestimonialCard key={`${t.name}-${i}`} t={t} i={i} />
             ))}
