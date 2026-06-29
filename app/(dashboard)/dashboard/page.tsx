@@ -273,10 +273,7 @@ export default function DashboardPage() {
           <p className="text-xs text-muted-foreground mb-4">
             {stats.documentsUploaded} of {stats.documentLimit} documents used
           </p>
-          <ChartContainer
-            config={usageChartConfig}
-            className="aspect-square max-h-56 min-h-[200px]"
-          >
+          <ChartContainer config={usageChartConfig} className="h-56">
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent />} />
               <Pie
@@ -302,10 +299,7 @@ export default function DashboardPage() {
           <p className="text-xs text-muted-foreground mb-4">
             {stats.messagesSent} of {stats.messageLimit} messages used
           </p>
-          <ChartContainer
-            config={usageChartConfig}
-            className="aspect-square max-h-56 min-h-[200px]"
-          >
+          <ChartContainer config={usageChartConfig} className="h-56">
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent />} />
               <Pie
@@ -332,7 +326,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground mb-4">
               Breakdown of your {stats.totalDocuments} documents
             </p>
-            <ChartContainer config={statusChartConfig} className="max-h-48 min-h-[150px]">
+            <ChartContainer config={statusChartConfig} className="h-48">
               <BarChart data={statusData} layout="vertical" barSize={28}>
                 <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                 <XAxis type="number" tickLine={false} axisLine={false} />

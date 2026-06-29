@@ -11,6 +11,7 @@ import { useTheme } from 'next-themes';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { useSyncExternalStore } from 'react';
 import { LayoutDashboard, FileText, LogOut, Sun, Moon } from 'lucide-react';
 
 interface SidebarProps {
@@ -65,6 +66,11 @@ export function Sidebar({
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const { data: usageStats, isLoading: usageLoading } = useQuery({
     queryKey: ['usage'],
@@ -95,7 +101,14 @@ export function Sidebar({
           className="flex items-center font-bold text-xl"
           onClick={onNavClick}
         >
-          <Image src="/logo.png" alt="Docsy" width={28} height={28} className="shrink-0" />
+          <Image
+            src="/logo.png"
+            alt="Docsy"
+            width={28}
+            height={28}
+            className="shrink-0"
+            unoptimized
+          />
         </Link>
       </div>
 
@@ -148,7 +161,15 @@ export function Sidebar({
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             aria-label="Toggle theme"
           >
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {mounted ? (
+              theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )
+            ) : (
+              <div className="h-4 w-4" />
+            )}
           </Button>
         </div>
         <button

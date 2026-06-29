@@ -35,7 +35,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             />
           </SheetContent>
         </Sheet>
-        <Image src="/logo.png" alt="Docsy" width={24} height={24} />
+        <Image src="/logo.png" alt="Docsy" width={24} height={24} unoptimized />
       </header>
 
       {/* Desktop — floating rounded panels */}
