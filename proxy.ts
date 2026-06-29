@@ -1,4 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { getEnv } from '@/lib/env';
+
+// Validate environment variables at startup — fails fast in production if misconfigured.
+if (process.env.NODE_ENV !== 'development') {
+  getEnv();
+}
 
 const publicRoutes = ['/login', '/register', '/reset-password', '/'];
 const publicPrefixes = ['/_next', '/api', '/favicon'];
