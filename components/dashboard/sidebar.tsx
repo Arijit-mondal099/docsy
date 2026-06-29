@@ -37,7 +37,13 @@ function UsageBadge({ stats }: { stats: UsageStats }) {
   );
 }
 
-export function Sidebar({ userName, userEmail, userInitial, isSheet, onNavClick }: SidebarProps) {
+export function Sidebar({
+  userName,
+  userEmail,
+  userInitial,
+  isSheet: _isSheet,
+  onNavClick,
+}: SidebarProps) {
   const router = useRouter();
 
   const { data: usageStats, isLoading: usageLoading } = useQuery({

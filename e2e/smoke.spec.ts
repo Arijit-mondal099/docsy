@@ -28,13 +28,13 @@ test.describe('smoke', () => {
     await page.waitForURL('/login', { timeout: 10000 });
   });
 
-  test('features page is accessible without auth', async ({ page }) => {
-    await page.goto('/features');
-    await expect(page.locator('h1').first()).toBeVisible();
+  test('features section exists on landing page', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('#features')).toBeVisible();
   });
 
-  test('pricing page is accessible without auth', async ({ page }) => {
-    await page.goto('/pricing');
-    await expect(page.locator('h1').first()).toBeVisible();
+  test('pricing section exists on landing page', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('#pricing')).toBeVisible();
   });
 });

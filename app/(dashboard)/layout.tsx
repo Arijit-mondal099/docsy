@@ -57,7 +57,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             </SheetContent>
           </Sheet>
           <span className="font-bold text-xl">
-            <span className="text-primary">Chat</span>PDF
+            <span className="text-primary">Doc</span>sy
           </span>
         </header>
         <main className="flex-1 p-6">{children}</main>

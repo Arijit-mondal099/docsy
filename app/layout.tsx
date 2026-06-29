@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ChatPDF - Chat with your PDFs using AI',
+  title: 'Docsy - Chat with your PDFs using AI',
   description:
     'Upload a PDF and start asking questions. Get instant answers from your documents powered by GPT-4o and Gemini.',
 };

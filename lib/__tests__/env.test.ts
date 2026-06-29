@@ -53,7 +53,7 @@ describe('env validation', () => {
   });
 
   it('uses default BETTER_AUTH_URL when not provided', async () => {
-    const { BETTER_AUTH_URL: _, ...rest } = fullValidEnv();
+    const { BETTER_AUTH_URL: _unused, ...rest } = fullValidEnv();
     setEnv(rest as Record<string, string>);
     const { getEnv } = await import('@/lib/env');
     const env = getEnv();

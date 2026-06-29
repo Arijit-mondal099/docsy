@@ -84,7 +84,7 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleRetry = async (doc: Document) => {
+  const handleRetry = async (_doc: Document) => {
     // Re-trigger processing by calling upload again with the same doc
     // For now, show a notice — re-processing is handled in Phase 5
     toast.info('Re-processing will be available in a future update');
