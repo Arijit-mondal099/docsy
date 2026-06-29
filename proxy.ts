@@ -6,17 +6,19 @@ if (process.env.NODE_ENV !== 'development') {
   getEnv();
 }
 
-const publicRoutes = ['/login', '/register', '/reset-password', '/'];
+// Routes that are only for unauthenticated users — redirect authenticated users away.
+const authRoutes = ['/', '/login', '/register', '/reset-password'];
+
+// Prefixes always allowed through without any session check.
 const publicPrefixes = ['/_next', '/api', '/favicon'];
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isAuthRoute = authRoutes.some((route) => pathname === route);
+  const isPublicPrefix = publicPrefixes.some((prefix) => pathname.startsWith(prefix));
 
-  // Allow public routes and static files
-  if (
-    publicRoutes.some((route) => pathname === route) ||
-    publicPrefixes.some((prefix) => pathname.startsWith(prefix))
-  ) {
+  // Always allow static assets and API routes (the API handles its own auth).
+  if (isPublicPrefix) {
     return NextResponse.next();
   }
 
@@ -33,13 +35,24 @@ export default async function proxy(request: NextRequest) {
       // Handle both { user: {...} } and direct user object responses
       const user = data?.user ?? data;
       if (user && typeof user === 'object' && 'id' in user) {
+        // User is authenticated — redirect away from auth routes to dashboard
+        if (isAuthRoute) {
+          return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
         return NextResponse.next();
       }
     }
   } catch {
-    // If fetch fails, continue to redirect
+    // If fetch fails, continue to the unauthenticated logic below
   }
 
+  // No valid session found
+  if (isAuthRoute) {
+    // Allow unauthenticated users on auth routes (landing, login, register, etc.)
+    return NextResponse.next();
+  }
+
+  // Redirect unauthenticated users to login
   return NextResponse.redirect(new URL('/login', request.url));
 }
 
