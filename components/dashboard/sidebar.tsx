@@ -91,7 +91,7 @@ export function Sidebar({
       <div className="flex h-16 shrink-0 items-center border-b px-5">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 font-bold text-xl"
+          className="flex items-center font-bold text-xl"
           onClick={onNavClick}
         >
           <span className="text-brand">Doc</span>sy

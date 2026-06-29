@@ -40,7 +40,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       </header>
 
       {/* Desktop — floating rounded panels */}
-      <div className="hidden lg:flex p-4 h-dvh overflow-hidden">
+      <div className="hidden lg:flex gap-4 p-4 h-dvh overflow-hidden">
         {/* Sidebar panel */}
         <aside className="w-64 shrink-0">
           <div
