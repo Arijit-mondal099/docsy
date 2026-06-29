@@ -19,6 +19,28 @@ export type UsageStats = {
   messageLimit: number;
 };
 
+export type DocumentBrief = {
+  id: string;
+  name: string;
+  status: DocumentStatus;
+  createdAt: string;
+};
+
+export type DashboardStats = UsageStats & {
+  totalDocuments: number;
+  readyDocuments: number;
+  processingDocuments: number;
+  pendingDocuments: number;
+  errorDocuments: number;
+  totalChats: number;
+  totalMessages: number;
+  usagePercentages: {
+    documents: number;
+    messages: number;
+  };
+  recentDocuments: DocumentBrief[];
+};
+
 export async function fetchDocuments(): Promise<Document[]> {
   const res = await fetch('/api/documents');
   if (!res.ok) throw new Error('Failed to fetch documents');
@@ -56,5 +78,11 @@ export async function deleteDocument(id: string): Promise<void> {
 export async function fetchUsage(): Promise<UsageStats> {
   const res = await fetch('/api/usage');
   if (!res.ok) throw new Error('Failed to fetch usage stats');
+  return res.json();
+}
+
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+  const res = await fetch('/api/usage?dashboard=true');
+  if (!res.ok) throw new Error('Failed to fetch dashboard stats');
   return res.json();
 }
