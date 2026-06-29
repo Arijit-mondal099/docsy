@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { auth } from '@/lib/auth/config';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -34,9 +35,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             />
           </SheetContent>
         </Sheet>
-        <span className="font-bold text-xl">
-          <span className="text-brand">Doc</span>sy
-        </span>
+        <Image src="/logo.png" alt="Docsy" width={24} height={24} />
       </header>
 
       {/* Desktop — floating rounded panels */}

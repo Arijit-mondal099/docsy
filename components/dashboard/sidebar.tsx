@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -94,7 +95,7 @@ export function Sidebar({
           className="flex items-center font-bold text-xl"
           onClick={onNavClick}
         >
-          <span className="text-brand">Doc</span>sy
+          <Image src="/logo.png" alt="Docsy" width={28} height={28} className="shrink-0" />
         </Link>
       </div>
 

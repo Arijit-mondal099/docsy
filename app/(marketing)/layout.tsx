@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { Menu, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -96,7 +97,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
         <header className="fixed top-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-5xl -translate-x-1/2 rounded-2xl border bg-background/70 px-4 py-2 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
           <div className="flex h-12 items-center justify-between md:grid md:grid-cols-3">
             <Link href="/" className="text-lg font-bold tracking-tight md:justify-self-start">
-              <span className="text-brand">Doc</span>sy
+              <Image src="/logo.png" alt="Docsy" width={24} height={24} />
             </Link>
 
             {/* Desktop nav — centered */}
@@ -216,7 +217,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
             <div className="flex flex-col gap-8 md:flex-row md:justify-between">
               <div className="max-w-xs">
                 <Link href="/" className="text-lg font-bold tracking-tight">
-                  <span className="text-brand">Doc</span>sy
+                  <Image src="/logo.png" alt="Docsy" width={24} height={24} />
                 </Link>
                 <p className="mt-3 text-sm text-muted-foreground">
                   Turn your PDFs into conversations. Upload, ask, and get answers instantly.
