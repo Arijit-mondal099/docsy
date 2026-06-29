@@ -1,8 +1,11 @@
-import Link from 'next/link';
+'use client';
+
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { useAuthModal } from '@/components/auth/auth-context';
 
 export function CtaSection() {
+  const { openSignUp } = useAuthModal();
   return (
     <section className="px-4 py-20 md:py-28">
       <div className="group relative mx-auto max-w-5xl overflow-hidden rounded-2xl border ring-1 ring-foreground/5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
@@ -26,11 +29,9 @@ export function CtaSection() {
           <p className="relative mt-4 text-lg text-muted-foreground">
             Upload your first PDF free. No credit card required.
           </p>
-          <Link href="/register">
-            <Button size="lg" className="relative mt-8 h-12 px-8 text-base">
-              Get Started Free
-            </Button>
-          </Link>
+          <Button size="lg" className="relative mt-8 h-12 px-8 text-base" onClick={openSignUp}>
+            Get Started Free
+          </Button>
         </div>
       </div>
     </section>
