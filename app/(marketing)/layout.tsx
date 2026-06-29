@@ -5,7 +5,7 @@ import { Menu, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useSyncExternalStore, type ReactNode } from 'react';
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -28,13 +28,12 @@ const navLinks = [
 
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
 
