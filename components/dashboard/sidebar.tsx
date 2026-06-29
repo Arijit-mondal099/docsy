@@ -83,9 +83,9 @@ export function Sidebar({
   ];
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex h-full w-full flex-col">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b px-5">
+      <div className="flex h-16 shrink-0 items-center border-b px-5">
         <Link
           href="/dashboard"
           className="flex items-center gap-2 font-bold text-xl"
@@ -129,7 +129,7 @@ export function Sidebar({
       </div>
 
       {/* User section */}
-      <div className="border-t p-3">
+      <div className="border-t p-3 shrink-0">
         <div className="flex items-center gap-3 px-1">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
             {userInitial}

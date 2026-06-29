@@ -43,7 +43,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <div className="hidden lg:flex gap-4 p-4 min-h-screen overflow-hidden">
         {/* Sidebar panel */}
         <aside className="w-64 shrink-0">
-          <div className="sticky top-4 rounded-xl border bg-card shadow-sm overflow-hidden">
+          <div
+            className="sticky top-4 rounded-xl border bg-card shadow-sm overflow-hidden"
+            style={{ height: 'calc(100dvh - 2rem)' }}
+          >
             <Sidebar
               userName={session.user.name}
               userEmail={session.user.email ?? ''}
