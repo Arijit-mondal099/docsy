@@ -4,11 +4,13 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { useAuthModal } from '@/components/auth/auth-context';
 import { DashboardMockup } from './dashboard-mockup';
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
+  const { openSignUp } = useAuthModal();
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -79,11 +81,9 @@ export function Hero() {
 
         {/* CTAs */}
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link href="/register">
-            <Button size="lg" className="h-11 px-6 text-base">
-              Get Started Free
-            </Button>
-          </Link>
+          <Button size="lg" className="h-11 px-6 text-base" onClick={openSignUp}>
+            Get Started Free
+          </Button>
           <Link href="#features">
             <Button variant="outline" size="lg" className="h-11 px-6 text-base">
               See how it works
