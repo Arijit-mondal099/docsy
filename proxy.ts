@@ -15,9 +15,7 @@ export default async function proxy(request: NextRequest) {
   // Allow public routes and static files
   if (
     publicRoutes.some((route) => pathname === route) ||
-    publicPrefixes.some((prefix) => pathname.startsWith(prefix)) ||
-    pathname.startsWith('/features') ||
-    pathname.startsWith('/pricing')
+    publicPrefixes.some((prefix) => pathname.startsWith(prefix))
   ) {
     return NextResponse.next();
   }
