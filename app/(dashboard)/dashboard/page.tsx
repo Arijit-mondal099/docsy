@@ -268,12 +268,15 @@ export default function DashboardPage() {
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Document usage donut */}
-        <div className="rounded-xl border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border bg-card p-5 shadow-sm min-w-0">
           <h3 className="text-sm font-semibold mb-1">Document Usage</h3>
           <p className="text-xs text-muted-foreground mb-4">
             {stats.documentsUploaded} of {stats.documentLimit} documents used
           </p>
-          <ChartContainer config={usageChartConfig} className="aspect-square max-h-56">
+          <ChartContainer
+            config={usageChartConfig}
+            className="aspect-square max-h-56 min-h-[200px]"
+          >
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent />} />
               <Pie
@@ -294,12 +297,15 @@ export default function DashboardPage() {
         </div>
 
         {/* Message usage donut */}
-        <div className="rounded-xl border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border bg-card p-5 shadow-sm min-w-0">
           <h3 className="text-sm font-semibold mb-1">Message Usage</h3>
           <p className="text-xs text-muted-foreground mb-4">
             {stats.messagesSent} of {stats.messageLimit} messages used
           </p>
-          <ChartContainer config={usageChartConfig} className="aspect-square max-h-56">
+          <ChartContainer
+            config={usageChartConfig}
+            className="aspect-square max-h-56 min-h-[200px]"
+          >
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent />} />
               <Pie
@@ -321,12 +327,12 @@ export default function DashboardPage() {
 
         {/* Document status bar chart */}
         {statusData.length > 0 && (
-          <div className="rounded-xl border bg-card p-5 shadow-sm lg:col-span-2">
+          <div className="rounded-xl border bg-card p-5 shadow-sm lg:col-span-2 min-w-0">
             <h3 className="text-sm font-semibold mb-1">Document Status</h3>
             <p className="text-xs text-muted-foreground mb-4">
               Breakdown of your {stats.totalDocuments} documents
             </p>
-            <ChartContainer config={statusChartConfig} className="max-h-48">
+            <ChartContainer config={statusChartConfig} className="max-h-48 min-h-[150px]">
               <BarChart data={statusData} layout="vertical" barSize={28}>
                 <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                 <XAxis type="number" tickLine={false} axisLine={false} />
