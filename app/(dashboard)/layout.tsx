@@ -35,12 +35,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </SheetContent>
         </Sheet>
         <span className="font-bold text-xl">
-          <span className="text-primary">Doc</span>sy
+          <span className="text-brand">Doc</span>sy
         </span>
       </header>
 
       {/* Desktop — floating rounded panels */}
-      <div className="hidden lg:flex gap-4 p-4 h-dvh overflow-hidden">
+      <div className="hidden lg:flex p-4 h-dvh overflow-hidden">
         {/* Sidebar panel */}
         <aside className="w-64 shrink-0">
           <div

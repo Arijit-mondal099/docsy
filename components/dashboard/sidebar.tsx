@@ -94,7 +94,7 @@ export function Sidebar({
           className="flex items-center gap-2 font-bold text-xl"
           onClick={onNavClick}
         >
-          <span className="text-primary">Doc</span>sy
+          <span className="text-brand">Doc</span>sy
         </Link>
       </div>
 
