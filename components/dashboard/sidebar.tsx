@@ -6,9 +6,11 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchUsage, type UsageStats } from '@/lib/api';
 import { authClient } from '@/lib/auth/client';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { LayoutDashboard, FileText, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { LayoutDashboard, FileText, LogOut, Sun, Moon } from 'lucide-react';
 
 interface SidebarProps {
   userName: string | null;
@@ -61,6 +63,7 @@ export function Sidebar({
 }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
 
   const { data: usageStats, isLoading: usageLoading } = useQuery({
     queryKey: ['usage'],
@@ -138,6 +141,14 @@ export function Sidebar({
             <p className="text-sm font-medium truncate">{userName || 'User'}</p>
             <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
         </div>
         <button
           onClick={handleLogout}
