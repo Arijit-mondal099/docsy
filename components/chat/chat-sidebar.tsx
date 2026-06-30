@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { fetchChats, deleteChat, renameChat, type ChatListItem } from '@/lib/api';
 import { MessageSquare, Plus, Trash2, Pencil, Check, X, FileText } from 'lucide-react';
 import {
   AlertDialog,
@@ -21,44 +22,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
 
-interface ChatListItem {
-  id: string;
-  documentId: string;
-  documentName: string | null;
-  name: string | null;
-  createdAt: string;
-  lastMessage: string | null;
-  messageCount: number;
-}
-
 interface ChatSidebarProps {
   currentChatId?: string;
   onNavClick?: () => void;
 }
 
-async function fetchChats(): Promise<ChatListItem[]> {
-  const res = await fetch('/api/chats');
-  if (!res.ok) throw new Error('Failed to fetch chats');
-  return res.json();
-}
-
-async function deleteChat(id: string): Promise<void> {
-  const res = await fetch(`/api/chats/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Failed to delete chat');
-}
-
-async function renameChat(id: string, name: string): Promise<void> {
-  const res = await fetch(`/api/chats/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
-  });
-  if (!res.ok) throw new Error('Failed to rename chat');
-}
-
 export function ChatSidebar({ currentChatId, onNavClick }: ChatSidebarProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
