@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useState, useRef, useCallback, type FormEvent, type KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { ArrowUp, Square } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -11,47 +12,74 @@ interface ChatInputProps {
 
 export function ChatInput({ onSend, isLoading }: ChatInputProps) {
   const [input, setInput] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const adjustHeight = useCallback(() => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+    }
+  }, []);
+
+  const handleSubmit = (e?: FormEvent) => {
+    e?.preventDefault();
     if (input.trim() && !isLoading) {
       onSend(input.trim());
       setInput('');
+      // Reset textarea height
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      handleSubmit();
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2">
-      <Input
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Ask a question about your document..."
-        disabled={isLoading}
-        className="flex-1"
-      />
-      <Button type="submit" size="icon" disabled={!input.trim() || isLoading}>
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
+    <form onSubmit={handleSubmit} className="relative">
+      <div className="flex items-end gap-2 rounded-2xl border border-border bg-background px-4 py-3 shadow-xs transition-colors focus-within:border-accent/50 focus-within:ring-1 focus-within:ring-accent/20">
+        <textarea
+          ref={textareaRef}
+          value={input}
+          onChange={(e) => {
+            setInput(e.target.value);
+            adjustHeight();
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask a question about your document..."
+          disabled={isLoading}
+          rows={1}
+          className={cn(
+            'flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none',
+            'scrollbar-thin',
+          )}
+          style={{ maxHeight: '200px' }}
+        />
+        <Button
+          type="submit"
+          size="icon"
+          disabled={!input.trim() || isLoading}
+          className={cn(
+            'shrink-0 rounded-full transition-all',
+            input.trim() && !isLoading
+              ? 'bg-accent text-accent-foreground hover:bg-accent/90 shadow-xs'
+              : 'bg-muted text-muted-foreground',
+          )}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
-          />
-        </svg>
-      </Button>
+          {isLoading ? (
+            <Square className="h-4 w-4 fill-current" />
+          ) : (
+            <ArrowUp className="h-4 w-4" />
+          )}
+          <span className="sr-only">{isLoading ? 'Stop' : 'Send'}</span>
+        </Button>
+      </div>
     </form>
   );
 }
