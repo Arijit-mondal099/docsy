@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useSyncExternalStore } from 'react';
-import { LayoutDashboard, FileText, LogOut, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, FileText, MessageSquare, LogOut, Sun, Moon } from 'lucide-react';
 import Image from 'next/image';
 
 interface SidebarProps {
@@ -90,6 +90,7 @@ export function Sidebar({
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/documents', label: 'Documents', icon: FileText },
+    { href: '/chat', label: 'Chats', icon: MessageSquare },
   ];
 
   return (
