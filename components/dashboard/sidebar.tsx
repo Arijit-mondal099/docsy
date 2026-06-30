@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useSyncExternalStore } from 'react';
 import { LayoutDashboard, FileText, LogOut, Sun, Moon } from 'lucide-react';
+import Image from 'next/image';
 
 interface SidebarProps {
   userName: string | null;
@@ -101,14 +101,8 @@ export function Sidebar({
           className="flex items-center font-bold text-xl"
           onClick={onNavClick}
         >
-          <Image
-            src="/logo.png"
-            alt="Docsy"
-            width={28}
-            height={28}
-            className="shrink-0"
-            unoptimized
-          />
+          <Image src="/logo.png" alt="Docsy" width={28} height={28} className="shrink-0" />
+          <span>Docsy</span>
         </Link>
       </div>
 

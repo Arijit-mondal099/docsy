@@ -1,12 +1,13 @@
-import Image from 'next/image';
 import { auth } from '@/lib/auth/config';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import type { ReactNode } from 'react';
+import Image from 'next/image';
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -35,7 +36,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             />
           </SheetContent>
         </Sheet>
-        <Image src="/logo.png" alt="Docsy" width={24} height={24} unoptimized />
+        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-lg">
+          <Image src="/logo.png" alt="Docsy" width={24} height={24} />
+          <span>Docsy</span>
+        </Link>
       </header>
 
       {/* Desktop — floating rounded panels */}
