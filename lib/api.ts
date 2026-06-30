@@ -75,6 +75,17 @@ export async function deleteDocument(id: string): Promise<void> {
   }
 }
 
+export async function reprocessDocument(id: string): Promise<void> {
+  const res = await fetch(`/api/documents/${id}/reprocess`, {
+    method: 'POST',
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to reprocess document');
+  }
+}
+
 export async function fetchUsage(): Promise<UsageStats> {
   const res = await fetch('/api/usage');
   if (!res.ok) throw new Error('Failed to fetch usage stats');

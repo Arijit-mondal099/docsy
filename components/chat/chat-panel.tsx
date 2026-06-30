@@ -16,7 +16,6 @@ interface Message {
 interface ChatPanelProps {
   chatId: string;
   documentId: string;
-  documentUrl?: string;
   documentName?: string;
   initialMessages?: Message[];
 }
@@ -24,7 +23,6 @@ interface ChatPanelProps {
 export function ChatPanel({
   chatId,
   documentId,
-  documentUrl,
   documentName,
   initialMessages = [],
 }: ChatPanelProps) {
@@ -33,6 +31,7 @@ export function ChatPanel({
   const [error, setError] = useState<string | null>(null);
   const [pdfLoaded, setPdfLoaded] = useState(false);
   const [pdfError, setPdfError] = useState(false);
+  const pdfUrl = `/api/documents/${documentId}/pdf`;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastSentRef = useRef<string>('');
 
@@ -131,42 +130,37 @@ export function ChatPanel({
   return (
     <div className="flex h-full flex-col md:flex-row">
       {/* PDF Viewer (left, stacked on top on mobile) */}
-      {documentUrl && (
-        <div className="flex h-1/2 flex-col border-b md:h-full md:w-1/2 md:border-b-0 md:border-r">
-          <div className="flex h-14 shrink-0 items-center border-b px-4">
-            <h2 className="truncate text-sm font-medium">{documentName || 'Document'}</h2>
-          </div>
-          <div className="relative flex-1">
-            {!pdfLoaded && !pdfError && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Skeleton className="h-full w-full rounded-none" />
-              </div>
-            )}
-            {pdfError ? (
-              <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
-                Failed to load PDF preview. The document may have been removed or the URL has
-                expired.
-              </div>
-            ) : (
-              <iframe
-                src={documentUrl}
-                className="h-full w-full"
-                title="PDF Viewer"
-                onLoad={() => setPdfLoaded(true)}
-                onError={() => {
-                  setPdfError(true);
-                  setPdfLoaded(true);
-                }}
-              />
-            )}
-          </div>
+      <div className="flex h-1/2 flex-col border-b md:h-full md:w-1/2 md:border-b-0 md:border-r">
+        <div className="flex h-14 shrink-0 items-center border-b px-4">
+          <h2 className="truncate text-sm font-medium">{documentName || 'Document'}</h2>
         </div>
-      )}
+        <div className="relative flex-1">
+          {!pdfLoaded && !pdfError && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Skeleton className="h-full w-full rounded-none" />
+            </div>
+          )}
+          {pdfError ? (
+            <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
+              Failed to load PDF preview. The document may have been removed or the URL has expired.
+            </div>
+          ) : (
+            <iframe
+              src={pdfUrl}
+              className="h-full w-full"
+              title="PDF Viewer"
+              onLoad={() => setPdfLoaded(true)}
+              onError={() => {
+                setPdfError(true);
+                setPdfLoaded(true);
+              }}
+            />
+          )}
+        </div>
+      </div>
 
       {/* Chat Panel (right, bottom on mobile) */}
-      <div
-        className={`flex h-full flex-col ${documentUrl ? 'h-1/2 md:h-full md:w-1/2' : 'w-full'}`}
-      >
+      <div className="flex h-1/2 flex-col md:h-full md:w-1/2">
         <div className="flex h-14 shrink-0 items-center border-b px-4">
           <h2 className="text-sm font-medium">Chat</h2>
         </div>

@@ -13,11 +13,7 @@ interface Message {
   createdAt: Date;
 }
 
-export default async function ChatPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session) {
@@ -37,7 +33,7 @@ export default async function ChatPage({
   }
 
   const [doc] = await db
-    .select()
+    .select({ name: documents.name })
     .from(documents)
     .where(eq(documents.id, chat.documentId));
 
@@ -59,7 +55,6 @@ export default async function ChatPage({
       <ChatPanel
         chatId={id}
         documentId={chat.documentId}
-        documentUrl={doc?.cloudinaryUrl}
         documentName={doc?.name}
         initialMessages={initialMessages}
       />

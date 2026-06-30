@@ -16,7 +16,6 @@ export async function uploadPdf(
         resource_type: 'raw',
         folder: 'chatpdf',
         public_id: fileName.replace(/\.[^/.]+$/, ''),
-        format: 'pdf',
       },
       (error, result) => {
         if (error || !result) {

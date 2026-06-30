@@ -1,4 +1,4 @@
-import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
+import { extractText } from 'unpdf';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { getPineconeIndex, getDocumentNamespace } from './pinecone';
@@ -22,6 +22,7 @@ function getEmbeddings(): OpenAIEmbeddings {
   if (!embeddingsInstance) {
     embeddingsInstance = new OpenAIEmbeddings({
       model: embeddingModel,
+      dimensions: 768,
       openAIApiKey: process.env.OPENAI_API_KEY,
     });
   }
@@ -34,24 +35,25 @@ export async function getEmbedding(text: string): Promise<number[]> {
   return vector;
 }
 
-export async function processPdf(
-  pdfUrl: string,
-  documentId: string,
-): Promise<number> {
+export async function processPdf(pdfUrl: string, documentId: string): Promise<number> {
   const embeddings = getEmbeddings();
 
   // Fetch PDF
   const response = await fetch(pdfUrl);
-  const pdfBlob = await response.blob();
+  const pdfBuffer = new Uint8Array(await response.arrayBuffer());
 
-  // Load PDF
-  const loader = new PDFLoader(pdfBlob, {
-    splitPages: true,
-  });
-  const docs = await loader.load();
+  // Extract text using unpdf (pure JS, no native deps - works on Vercel)
+  const { text } = await extractText(pdfBuffer);
+
+  // unpdf returns string[] (one per page), join into single string
+  const fullText = Array.isArray(text) ? text.join('\n\n') : text;
+
+  if (!fullText || fullText.trim().length === 0) {
+    return 0;
+  }
 
   // Split into chunks
-  const chunks = await textSplitter.splitDocuments(docs);
+  const chunks = await textSplitter.splitText(fullText);
 
   if (chunks.length === 0) {
     return 0;
@@ -59,14 +61,14 @@ export async function processPdf(
 
   // Generate embeddings and prepare vectors
   const vectors: PineconeRecord<ChunkMetadata>[] = await Promise.all(
-    chunks.map(async (chunk, i) => {
-      const [embedding] = await embeddings.embedDocuments([chunk.pageContent]);
+    chunks.map(async (chunkText, i) => {
+      const [embedding] = await embeddings.embedDocuments([chunkText]);
       return {
         id: `${documentId}-chunk-${i}`,
         values: embedding,
         metadata: {
           documentId,
-          text: chunk.pageContent,
+          text: chunkText,
           chunkIndex: i,
         },
       };

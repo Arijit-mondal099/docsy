@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { fetchDocuments, deleteDocument, type Document } from '@/lib/api';
+import { fetchDocuments, deleteDocument, reprocessDocument, type Document } from '@/lib/api';
 import { UploadDropzone } from '@/components/pdf/upload-dropzone';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -45,6 +45,7 @@ export default function DocumentsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [reprocessingId, setReprocessingId] = useState<string | null>(null);
 
   const { data: docs, isLoading } = useQuery({
     queryKey: ['documents'],
@@ -84,10 +85,26 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleRetry = async (_doc: Document) => {
-    // Re-trigger processing by calling upload again with the same doc
-    // For now, show a notice — re-processing is handled in Phase 5
-    toast.info('Re-processing will be available in a future update');
+  const reprocessMutation = useMutation({
+    mutationFn: async (id: string) => {
+      setReprocessingId(id);
+      await reprocessDocument(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['usage'] });
+      toast.success('Reprocessing started');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to reprocess document');
+    },
+    onSettled: () => {
+      setReprocessingId(null);
+    },
+  });
+
+  const handleRetry = (doc: Document) => {
+    reprocessMutation.mutate(doc.id);
   };
 
   return (
@@ -175,9 +192,14 @@ export default function DocumentsPage() {
                   )}
 
                   {doc.status === 'error' && (
-                    <Button variant="outline" size="sm" onClick={() => handleRetry(doc)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRetry(doc)}
+                      disabled={reprocessingId === doc.id}
+                    >
                       <svg
-                        className="mr-1.5 h-3.5 w-3.5"
+                        className={`mr-1.5 h-3.5 w-3.5 ${reprocessingId === doc.id ? 'animate-spin' : ''}`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -189,7 +211,7 @@ export default function DocumentsPage() {
                           d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"
                         />
                       </svg>
-                      Retry
+                      {reprocessingId === doc.id ? 'Retrying...' : 'Retry'}
                     </Button>
                   )}
 
