@@ -5,6 +5,7 @@ import { NextRequest } from 'next/server';
 const mockGetSession = vi.hoisted(() => vi.fn());
 const mockDbSelect = vi.hoisted(() => vi.fn());
 const mockDbInsert = vi.hoisted(() => vi.fn());
+const mockDbUpdate = vi.hoisted(() => vi.fn());
 const mockTryIncrement = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/auth/config', () => ({
@@ -12,7 +13,7 @@ vi.mock('@/lib/auth/config', () => ({
 }));
 
 vi.mock('@/lib/db', () => ({
-  db: { select: mockDbSelect, insert: mockDbInsert },
+  db: { select: mockDbSelect, insert: mockDbInsert, update: mockDbUpdate },
 }));
 
 vi.mock('@/lib/ai/rag', () => ({
@@ -76,6 +77,15 @@ function mockInsertReturning(rows: unknown[]) {
   });
 }
 
+/** Make db.update(table).set(data).where(condition) resolve silently */
+function mockUpdateWhere() {
+  mockDbUpdate.mockReturnValue({
+    set: () => ({
+      where: () => Promise.resolve(),
+    }),
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -114,6 +124,7 @@ describe('POST /api/chat', () => {
     // No existing chat — will create one via documentId path
     mockSelectResult([]);
     mockInsertReturning([{ id: 'chat-1', documentId: 'doc-1' }]);
+    mockUpdateWhere();
 
     mockTryIncrement.mockResolvedValue({
       allowed: false,
