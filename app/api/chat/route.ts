@@ -86,6 +86,13 @@ export async function POST(request: NextRequest) {
       content: lastUserMessage,
     });
 
+    // Auto-name chat from first user message if no name set
+    if (!chat.name) {
+      const chatName =
+        lastUserMessage.length > 50 ? lastUserMessage.slice(0, 47) + '...' : lastUserMessage;
+      await db.update(chats).set({ name: chatName }).where(eq(chats.id, chat.id));
+    }
+
     // Load full history for AI context
     const dbMessages = await db
       .select()
