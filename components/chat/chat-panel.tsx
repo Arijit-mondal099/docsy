@@ -6,7 +6,7 @@ import { ChatInput } from './chat-input';
 import { ModelSelector, type ModelOption } from './model-selector';
 import { SuggestedQuestions } from './suggested-questions';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { PdfViewer } from '@/components/pdf/pdf-viewer';
 import { PanelRightOpen, PanelRightClose, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,8 +33,6 @@ export function ChatPanel({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pdfLoaded, setPdfLoaded] = useState(false);
-  const [pdfError, setPdfError] = useState(false);
   const [showPdf, setShowPdf] = useState(true);
   const [model, setModel] = useState<ModelOption>('gpt-4o');
   const pdfUrl = `/api/documents/${documentId}/pdf`;
@@ -140,8 +138,10 @@ export function ChatPanel({
       {/* PDF Viewer — left panel, collapsible */}
       {showPdf && (
         <div className="flex h-1/2 flex-col border-b md:h-full md:w-1/2 md:border-b-0 md:border-r">
-          <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-            <h2 className="truncate text-sm font-medium">{documentName || 'Document'}</h2>
+          <div className="flex shrink-0 items-center justify-between border-b px-3">
+            <span className="truncate text-xs font-medium text-muted-foreground">
+              {documentName || 'Document'}
+            </span>
             <Button
               variant="ghost"
               size="icon-xs"
@@ -153,30 +153,7 @@ export function ChatPanel({
               <span className="sr-only">Hide PDF</span>
             </Button>
           </div>
-          <div className="relative flex-1">
-            {!pdfLoaded && !pdfError && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Skeleton className="h-full w-full rounded-none" />
-              </div>
-            )}
-            {pdfError ? (
-              <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
-                Failed to load PDF preview. The document may have been removed or the URL has
-                expired.
-              </div>
-            ) : (
-              <iframe
-                src={pdfUrl}
-                className="h-full w-full"
-                title="PDF Viewer"
-                onLoad={() => setPdfLoaded(true)}
-                onError={() => {
-                  setPdfError(true);
-                  setPdfLoaded(true);
-                }}
-              />
-            )}
-          </div>
+          <PdfViewer url={pdfUrl} documentName={documentName} className="flex-1" />
         </div>
       )}
 
