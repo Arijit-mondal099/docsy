@@ -2,10 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuthModal } from '@/components/auth/auth-context';
 import { DashboardMockup } from './dashboard-mockup';
+import Image from 'next/image';
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -115,11 +115,10 @@ export function Hero() {
           {/* Image covering entire container (including padding area) — hidden on mobile */}
           <Image
             src="/hero.jpg"
-            alt=""
-            fill
-            className="hidden object-cover opacity-70 md:block"
-            priority
-            unoptimized
+            alt="hero bg behaind image"
+            width={100}
+            height={100}
+            className="hidden absolute inset-0 w-full h-full object-cover opacity-70 md:block"
             aria-hidden
           />
           {/* Dashboard mockup on top with padding — no padding on mobile */}

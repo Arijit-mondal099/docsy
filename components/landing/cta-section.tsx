@@ -1,8 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuthModal } from '@/components/auth/auth-context';
+import Image from 'next/image';
 
 export function CtaSection() {
   const { openSignUp } = useAuthModal();
@@ -12,11 +12,10 @@ export function CtaSection() {
         {/* Background image — anchored to bottom */}
         <Image
           src="/cta-bg.jpg"
-          alt=""
-          fill
-          className="object-cover object-bottom opacity-20"
-          priority
-          unoptimized
+          alt="cta bg image"
+          width={100}
+          height={100}
+          className="absolute inset-0 w-full h-full object-cover object-bottom opacity-20"
           aria-hidden
         />
         {/* Content on top */}
