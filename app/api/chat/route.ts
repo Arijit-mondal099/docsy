@@ -2,8 +2,10 @@ import { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth/config';
 import { db } from '@/lib/db';
 import { chats, messages } from '@/lib/db/schema';
-import { searchDocumentChunks, getChatModel } from '@/lib/ai/rag';
+import { searchDocumentChunks } from '@/lib/ai/rag';
 import { streamText } from 'ai';
+import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { tryIncrementMessagesSent } from '@/lib/db/usage';
 import { eq } from 'drizzle-orm';
 
@@ -20,7 +22,12 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const { messages: incomingMessages, id: chatId, documentId } = await request.json();
+  const {
+    messages: incomingMessages,
+    id: chatId,
+    documentId,
+    model: preferredModel,
+  } = await request.json();
   const lastUserMessage = incomingMessages
     ?.slice()
     .reverse()
@@ -86,6 +93,13 @@ export async function POST(request: NextRequest) {
       content: lastUserMessage,
     });
 
+    // Auto-name chat from first user message if no name set
+    if (!chat.name) {
+      const chatName =
+        lastUserMessage.length > 50 ? lastUserMessage.slice(0, 47) + '...' : lastUserMessage;
+      await db.update(chats).set({ name: chatName }).where(eq(chats.id, chat.id));
+    }
+
     // Load full history for AI context
     const dbMessages = await db
       .select()
@@ -114,13 +128,16 @@ ${contextText}`;
       });
     }
 
-    // Try primary model, fallback to Gemini on error
-    let useFallback = false;
+    // Select model based on user preference, with fallback
+    const modelChain = [
+      preferredModel === 'gemini-2.0-flash' ? google('gemini-2.0-flash') : openai('gpt-4o'),
+      preferredModel === 'gemini-2.0-flash' ? openai('gpt-4o') : google('gemini-2.0-flash'),
+    ];
 
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const result = streamText({
-          model: getChatModel(useFallback),
+          model: modelChain[attempt],
           system: systemPrompt,
           messages: dbMessages.map((m) => ({
             role: m.role as 'user' | 'assistant',
@@ -145,7 +162,6 @@ ${contextText}`;
         });
       } catch (e) {
         console.error(`Chat attempt ${attempt + 1} failed:`, e);
-        useFallback = true;
       }
     }
 

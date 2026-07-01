@@ -97,3 +97,35 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   if (!res.ok) throw new Error('Failed to fetch dashboard stats');
   return res.json();
 }
+
+// ── Chat types ──
+
+export type ChatListItem = {
+  id: string;
+  documentId: string;
+  documentName: string | null;
+  name: string | null;
+  createdAt: string;
+  lastMessage: string | null;
+  messageCount: number;
+};
+
+export async function fetchChats(): Promise<ChatListItem[]> {
+  const res = await fetch('/api/chats');
+  if (!res.ok) throw new Error('Failed to fetch chats');
+  return res.json();
+}
+
+export async function deleteChat(id: string): Promise<void> {
+  const res = await fetch(`/api/chats/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete chat');
+}
+
+export async function renameChat(id: string, name: string): Promise<void> {
+  const res = await fetch(`/api/chats/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) throw new Error('Failed to rename chat');
+}

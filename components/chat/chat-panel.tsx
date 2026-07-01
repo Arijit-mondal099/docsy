@@ -3,8 +3,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
+import { ModelSelector, type ModelOption } from './model-selector';
+import { SuggestedQuestions } from './suggested-questions';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { PdfViewer } from '@/components/pdf/pdf-viewer';
+import { PanelRightOpen, PanelRightClose, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Message {
   id: string;
@@ -29,8 +33,8 @@ export function ChatPanel({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pdfLoaded, setPdfLoaded] = useState(false);
-  const [pdfError, setPdfError] = useState(false);
+  const [showPdf, setShowPdf] = useState(true);
+  const [model, setModel] = useState<ModelOption>('gpt-4o');
   const pdfUrl = `/api/documents/${documentId}/pdf`;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastSentRef = useRef<string>('');
@@ -67,6 +71,7 @@ export function ChatPanel({
             })),
             id: chatId,
             documentId,
+            model,
           }),
         });
 
@@ -98,7 +103,6 @@ export function ChatPanel({
           const text = decoder.decode(value, { stream: true });
           fullContent += text;
 
-          // Update the assistant message content as it streams
           setMessages((prev) => {
             const updated = [...prev];
             const last = updated[updated.length - 1];
@@ -109,7 +113,6 @@ export function ChatPanel({
           });
         }
       } catch (err) {
-        // Remove empty assistant placeholder on failure so retry doesn't send corrupted history
         setMessages((prev) => prev.filter((m) => !(m.role === 'assistant' && m.content === '')));
         const message = err instanceof Error ? err.message : 'Something went wrong';
         setError(message);
@@ -117,8 +120,7 @@ export function ChatPanel({
         setIsLoading(false);
       }
     },
-
-    [messages, isLoading, chatId, documentId],
+    [messages, isLoading, chatId, documentId, model],
   );
 
   const handleRetry = () => {
@@ -127,51 +129,76 @@ export function ChatPanel({
     }
   };
 
+  const handleSuggestedQuestion = (question: string) => {
+    handleSend(question);
+  };
+
   return (
     <div className="flex h-full flex-col md:flex-row">
-      {/* PDF Viewer (left, stacked on top on mobile) */}
-      <div className="flex h-1/2 flex-col border-b md:h-full md:w-1/2 md:border-b-0 md:border-r">
-        <div className="flex h-14 shrink-0 items-center border-b px-4">
-          <h2 className="truncate text-sm font-medium">{documentName || 'Document'}</h2>
+      {/* PDF Viewer — left panel, collapsible */}
+      {showPdf && (
+        <div className="flex h-1/2 flex-col border-b md:h-full md:w-1/2 md:border-b-0 md:border-r">
+          <div className="flex shrink-0 items-center justify-between border-b px-3">
+            <span className="truncate text-xs font-medium text-muted-foreground">
+              {documentName || 'Document'}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => setShowPdf(false)}
+              className="shrink-0 text-muted-foreground hover:text-foreground"
+              title="Hide PDF viewer"
+            >
+              <PanelRightClose className="h-4 w-4" />
+              <span className="sr-only">Hide PDF</span>
+            </Button>
+          </div>
+          <PdfViewer url={pdfUrl} documentName={documentName} className="flex-1" />
         </div>
-        <div className="relative flex-1">
-          {!pdfLoaded && !pdfError && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Skeleton className="h-full w-full rounded-none" />
-            </div>
-          )}
-          {pdfError ? (
-            <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
-              Failed to load PDF preview. The document may have been removed or the URL has expired.
-            </div>
-          ) : (
-            <iframe
-              src={pdfUrl}
-              className="h-full w-full"
-              title="PDF Viewer"
-              onLoad={() => setPdfLoaded(true)}
-              onError={() => {
-                setPdfError(true);
-                setPdfLoaded(true);
-              }}
-            />
-          )}
-        </div>
-      </div>
+      )}
 
-      {/* Chat Panel (right, bottom on mobile) */}
-      <div className="flex h-1/2 flex-col md:h-full md:w-1/2">
-        <div className="flex h-14 shrink-0 items-center border-b px-4">
-          <h2 className="text-sm font-medium">Chat</h2>
+      {/* Chat panel — right side */}
+      <div className={cn('flex flex-col', showPdf ? 'h-1/2 md:h-full md:w-1/2' : 'h-full w-full')}>
+        {/* Header */}
+        <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
+          <div className="flex items-center gap-2 min-w-0">
+            {!showPdf && (
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => setShowPdf(true)}
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+                title="Show PDF viewer"
+              >
+                <PanelRightOpen className="h-4 w-4" />
+                <span className="sr-only">Show PDF</span>
+              </Button>
+            )}
+            <h2 className="truncate text-sm font-medium">Chat</h2>
+          </div>
+          <ModelSelector value={model} onChange={setModel} />
         </div>
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 && !isLoading && (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">
-                Ask a question about your document to get started
-              </p>
+            <div className="flex h-full flex-col items-center justify-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10">
+                <svg
+                  className="h-6 w-6 text-accent"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+                  />
+                </svg>
+              </div>
+              <SuggestedQuestions documentName={documentName} onSelect={handleSuggestedQuestion} />
             </div>
           )}
 
@@ -189,19 +216,7 @@ export function ChatPanel({
                 {error}
               </div>
               <Button variant="outline" size="sm" onClick={handleRetry} className="text-xs">
-                <svg
-                  className="mr-1.5 h-3.5 w-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"
-                  />
-                </svg>
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
                 Retry
               </Button>
             </div>
@@ -211,8 +226,10 @@ export function ChatPanel({
         </div>
 
         {/* Input */}
-        <div className="border-t p-4">
-          <ChatInput onSend={handleSend} isLoading={isLoading} />
+        <div className="border-t px-4 pt-2 pb-3">
+          <div className="mx-auto max-w-3xl">
+            <ChatInput onSend={handleSend} isLoading={isLoading} />
+          </div>
         </div>
       </div>
     </div>

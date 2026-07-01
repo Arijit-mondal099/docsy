@@ -4,6 +4,7 @@ import { chats, messages, documents } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { redirect, notFound } from 'next/navigation';
 import { ChatPanel } from '@/components/chat/chat-panel';
+import { ChatSidebar } from '@/components/chat/chat-sidebar';
 import { headers } from 'next/headers';
 
 interface Message {
@@ -51,13 +52,21 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
   }));
 
   return (
-    <div className="h-[calc(100vh-4rem)]">
-      <ChatPanel
-        chatId={id}
-        documentId={chat.documentId}
-        documentName={doc?.name}
-        initialMessages={initialMessages}
-      />
+    <div className="flex h-[calc(100dvh-5rem-2px)]">
+      {/* Conversation sidebar — hidden on mobile */}
+      <aside className="hidden lg:flex w-72 shrink-0 border-r bg-muted/20">
+        <ChatSidebar currentChatId={id} />
+      </aside>
+
+      {/* Chat panel */}
+      <div className="flex-1 min-w-0">
+        <ChatPanel
+          chatId={id}
+          documentId={chat.documentId}
+          documentName={doc?.name}
+          initialMessages={initialMessages}
+        />
+      </div>
     </div>
   );
 }
