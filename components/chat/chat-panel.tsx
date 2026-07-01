@@ -226,7 +226,7 @@ export function ChatPanel({
         </div>
 
         {/* Input */}
-        <div className="border-t bg-gradient-to-t from-background via-background to-transparent px-4 pt-2 pb-3">
+        <div className="border-t px-4 pt-2 pb-3">
           <div className="mx-auto max-w-3xl">
             <ChatInput onSend={handleSend} isLoading={isLoading} />
           </div>
