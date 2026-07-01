@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, type FormEvent, type KeyboardEvent } from 'react';
-import { ArrowUp, Square, Paperclip } from 'lucide-react';
+import { ArrowUp, Square } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
@@ -46,27 +46,12 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
     <form onSubmit={handleSubmit} className="relative">
       <div
         className={cn(
-          'flex items-end gap-1.5 rounded-2xl border bg-card px-3 py-2.5 shadow-xs transition-all duration-200',
+          'flex items-end gap-1.5 rounded-2xl border bg-muted/40 px-3 py-2.5 shadow-xs transition-all duration-200',
           focused
             ? 'border-accent/40 shadow-sm ring-2 ring-accent/10'
             : 'border-border/60 hover:border-border',
         )}
       >
-        {/* Attach button */}
-        <button
-          type="button"
-          disabled={isLoading}
-          className={cn(
-            'flex size-8 shrink-0 items-center justify-center rounded-xl transition-colors',
-            'text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/50',
-            'disabled:opacity-30',
-          )}
-          title="Attach file"
-          tabIndex={-1}
-        >
-          <Paperclip className="size-4" />
-        </button>
-
         {/* Textarea */}
         <textarea
           ref={textareaRef}
@@ -95,14 +80,10 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
               ? 'bg-muted text-muted-foreground hover:bg-muted/80'
               : hasInput
                 ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:shadow-sm'
-                : 'text-muted-foreground/30',
+                : 'bg-muted/30 text-muted-foreground/30',
           )}
         >
-          {isLoading ? (
-            <Square className="size-4 fill-current" />
-          ) : (
-            <ArrowUp className="size-4" />
-          )}
+          {isLoading ? <Square className="size-4 fill-current" /> : <ArrowUp className="size-4" />}
           <span className="sr-only">{isLoading ? 'Stop' : 'Send'}</span>
         </button>
       </div>

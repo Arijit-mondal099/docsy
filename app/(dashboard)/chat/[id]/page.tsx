@@ -52,7 +52,7 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
   }));
 
   return (
-    <div className="flex -m-6" style={{ height: 'calc(100dvh - 5rem)' }}>
+    <div className="flex h-[calc(100dvh-5rem-2px)]">
       {/* Conversation sidebar — hidden on mobile */}
       <aside className="hidden lg:flex w-72 shrink-0 border-r bg-muted/20">
         <ChatSidebar currentChatId={id} />
