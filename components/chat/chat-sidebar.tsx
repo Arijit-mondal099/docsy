@@ -151,10 +151,11 @@ export function ChatSidebar({ currentChatId, onNavClick }: ChatSidebarProps) {
                   <Link
                     href={`/chat/${chat.id}`}
                     onClick={onNavClick}
+                    data-active={isActive || undefined}
                     className={cn(
                       'flex flex-col gap-0.5 rounded-lg px-3 py-2.5 text-sm transition-colors',
                       isActive
-                        ? 'bg-accent text-accent-foreground'
+                        ? 'bg-primary/10 text-primary font-semibold'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                     )}
                   >
