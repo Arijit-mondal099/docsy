@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, type FormEvent, type KeyboardEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowUp, Square } from 'lucide-react';
+import { ArrowUp, Square, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
@@ -41,9 +40,29 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
     }
   };
 
+  const hasText = input.trim().length > 0;
+
   return (
-    <form onSubmit={handleSubmit} className="relative">
-      <div className="flex items-end gap-2 rounded-2xl border border-border bg-background px-4 py-3 shadow-xs transition-colors focus-within:border-accent/50 focus-within:ring-1 focus-within:ring-accent/20">
+    <form onSubmit={handleSubmit}>
+      <div
+        className={cn(
+          'flex items-end gap-1.5 rounded-2xl border bg-card px-3 py-2.5 shadow-xs transition-all',
+          'focus-within:border-ring/50 focus-within:ring-1 focus-within:ring-ring/20',
+          hasText ? 'border-border' : 'border-border/50',
+        )}
+      >
+        {/* Attach button */}
+        <button
+          type="button"
+          disabled={isLoading}
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground/40 transition-colors hover:text-muted-foreground hover:bg-muted/60 disabled:opacity-30"
+          title="Attach file"
+        >
+          <Paperclip className="size-4" />
+          <span className="sr-only">Attach</span>
+        </button>
+
+        {/* Textarea */}
         <textarea
           ref={textareaRef}
           value={input}
@@ -56,29 +75,30 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
           disabled={isLoading}
           rows={1}
           className={cn(
-            'flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none',
+            'flex-1 resize-none bg-transparent py-1.5 text-sm text-foreground placeholder:text-muted-foreground/40 outline-none',
             'scrollbar-thin',
           )}
           style={{ maxHeight: '200px' }}
         />
-        <Button
+
+        {/* Send / Stop button */}
+        <button
           type="submit"
-          size="icon"
-          disabled={!input.trim() || isLoading}
+          disabled={!hasText || isLoading}
           className={cn(
-            'shrink-0 rounded-full transition-all',
-            input.trim() && !isLoading
-              ? 'bg-accent text-accent-foreground hover:bg-accent/90 shadow-xs'
-              : 'bg-muted text-muted-foreground',
+            'flex size-8 shrink-0 items-center justify-center rounded-lg transition-all',
+            hasText && !isLoading
+              ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90'
+              : 'text-muted-foreground/30',
           )}
+          aria-label={isLoading ? 'Stop' : 'Send'}
         >
           {isLoading ? (
-            <Square className="h-4 w-4 fill-current" />
+            <Square className="size-4 fill-current" />
           ) : (
-            <ArrowUp className="h-4 w-4" />
+            <ArrowUp className="size-4" />
           )}
-          <span className="sr-only">{isLoading ? 'Stop' : 'Send'}</span>
-        </Button>
+        </button>
       </div>
     </form>
   );
