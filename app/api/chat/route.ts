@@ -7,7 +7,7 @@ import { streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
 import { tryIncrementMessagesSent } from '@/lib/db/usage';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export const maxDuration = 60;
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       const existing = await db
         .select()
         .from(chats)
-        .where(eq(chats.id, chatId))
+        .where(and(eq(chats.id, chatId), eq(chats.userId, session.user.id)))
         .then((rows) => rows[0]);
 
       if (!existing && documentId) {
@@ -112,10 +112,18 @@ export async function POST(request: NextRequest) {
 
     // Build system prompt
     const contextText =
-      chunks.length > 0 ? chunks.join('\n\n---\n\n') : 'No relevant context found in the document.';
+      chunks.length > 0
+        ? chunks.map((c) => c.text).join('\n\n---\n\n')
+        : 'No relevant context was found in this document. You must refuse to answer using your own knowledge.';
 
-    const systemPrompt = `You are a helpful AI assistant that answers questions based on the provided document context. 
-If the answer cannot be found in the context, say so clearly. Do not make up information.
+    const systemPrompt = `You are a strict document Q&A assistant. You MUST follow these rules:
+
+1. ONLY answer questions using the document context provided below.
+2. If the answer is not in the context below, respond with EXACTLY:
+   "I cannot find information about this in the document."
+3. Do NOT use any prior knowledge, training data, or external information to answer.
+4. Do NOT make up or infer information not present in the context.
+5. Do NOT reference any other documents, conversations, or users.
 
 Context from the document:
 ${contextText}`;
