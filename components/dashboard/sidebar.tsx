@@ -110,7 +110,7 @@ export function Sidebar({
     router.push('/');
   };
 
-  const isFree = userPlan === 'free';
+  const isFree = usageStats ? usageStats.plan === 'free' : userPlan === 'free';
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },

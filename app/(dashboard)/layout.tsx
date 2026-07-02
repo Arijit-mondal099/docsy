@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const userPlan = (session.user as { plan?: string }).plan || 'free';
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen overflow-hidden bg-muted/30">
       {/* Mobile header — visible on screens < lg */}
       <header className="flex h-16 items-center gap-3 border-b bg-background px-4 lg:hidden">
         <Sheet>
@@ -62,7 +62,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         </aside>
 
         {/* Main content panel — scrolls independently when content overflows */}
-        <main className="flex-1 rounded-xl border bg-card shadow-sm overflow-y-auto p-6">
+        <main className="flex-1 rounded-xl border bg-card shadow-sm overflow-y-auto p-6 min-h-0">
           {children}
         </main>
       </div>
