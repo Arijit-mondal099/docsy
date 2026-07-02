@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/config';
-import { getUsage, FREE_DOCUMENT_LIMIT, FREE_MESSAGE_LIMIT } from '@/lib/db/usage';
+import { getUsage } from '@/lib/db/usage';
 import { db } from '@/lib/db';
 import { documents, chats, messages } from '@/lib/db/schema';
 import { eq, sql, count } from 'drizzle-orm';
@@ -57,6 +57,16 @@ export async function GET(request: NextRequest) {
     .orderBy(documents.createdAt)
     .limit(5);
 
+  // Calculate usage percentages based on dynamic limits
+  const docPercent =
+    usageStats.documentLimit === -1
+      ? 0
+      : Math.min(Math.round((usageStats.documentsUploaded / usageStats.documentLimit) * 100), 100);
+  const msgPercent =
+    usageStats.messageLimit === -1
+      ? 0
+      : Math.min(Math.round((usageStats.messagesSent / usageStats.messageLimit) * 100), 100);
+
   return NextResponse.json({
     ...usageStats,
     totalDocuments: Number(docCounts.total),
@@ -67,11 +77,8 @@ export async function GET(request: NextRequest) {
     totalChats: Number(chatCountResult?.count ?? 0),
     totalMessages: Number(messageCountResult?.count ?? 0),
     usagePercentages: {
-      documents: Math.min(
-        Math.round((usageStats.documentsUploaded / FREE_DOCUMENT_LIMIT) * 100),
-        100,
-      ),
-      messages: Math.min(Math.round((usageStats.messagesSent / FREE_MESSAGE_LIMIT) * 100), 100),
+      documents: docPercent,
+      messages: msgPercent,
     },
     recentDocuments: recentDocs.map((doc) => ({
       id: doc.id,

@@ -17,6 +17,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   const userInitial = session.user.name?.charAt(0)?.toUpperCase() || 'U';
+  const userPlan = (session.user as { plan?: string }).plan || 'free';
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -32,6 +33,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               userName={session.user.name}
               userEmail={session.user.email ?? ''}
               userInitial={userInitial}
+              userPlan={userPlan}
               isSheet
             />
           </SheetContent>
@@ -54,6 +56,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               userName={session.user.name}
               userEmail={session.user.email ?? ''}
               userInitial={userInitial}
+              userPlan={userPlan}
             />
           </div>
         </aside>

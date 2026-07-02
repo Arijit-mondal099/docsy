@@ -10,34 +10,56 @@ import { useTheme } from 'next-themes';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useSyncExternalStore } from 'react';
-import { LayoutDashboard, FileText, MessageSquare, LogOut, Sun, Moon } from 'lucide-react';
+import {
+  LayoutDashboard,
+  FileText,
+  MessageSquare,
+  LogOut,
+  Sun,
+  Moon,
+  CreditCard,
+  Crown,
+} from 'lucide-react';
 import Image from 'next/image';
 
 interface SidebarProps {
   userName: string | null;
   userEmail: string;
   userInitial: string;
+  userPlan?: string;
   isSheet?: boolean;
   onNavClick?: () => void;
 }
 
 function UsageBadge({ stats }: { stats: UsageStats }) {
-  const docPercent = Math.min(
-    Math.round((stats.documentsUploaded / stats.documentLimit) * 100),
-    100,
-  );
-  const msgPercent = Math.min(Math.round((stats.messagesSent / stats.messageLimit) * 100), 100);
+  const isUnlimited = stats.documentLimit === -1 || stats.messageLimit === -1;
+  const docPercent = isUnlimited
+    ? 100
+    : Math.min(Math.round((stats.documentsUploaded / stats.documentLimit) * 100), 100);
+  const msgPercent = isUnlimited
+    ? 100
+    : Math.min(Math.round((stats.messagesSent / stats.messageLimit) * 100), 100);
 
   return (
     <div className="space-y-3 rounded-lg border bg-muted/40 p-3">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Usage</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Usage
+        </p>
+        {stats.plan !== 'free' && (
+          <Badge variant="secondary" className="text-xs">
+            {stats.plan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'}
+          </Badge>
+        )}
+      </div>
       <div className="space-y-2.5">
         <div>
           <div className="flex items-center justify-between text-xs mb-1">
             <span className="text-muted-foreground">Documents</span>
             <span className="font-medium tabular-nums">
-              {stats.documentsUploaded} / {stats.documentLimit}
+              {stats.documentsUploaded} / {isUnlimited ? '∞' : stats.documentLimit}
             </span>
           </div>
           <Progress value={docPercent} className="h-1.5" />
@@ -46,7 +68,7 @@ function UsageBadge({ stats }: { stats: UsageStats }) {
           <div className="flex items-center justify-between text-xs mb-1">
             <span className="text-muted-foreground">Messages</span>
             <span className="font-medium tabular-nums">
-              {stats.messagesSent} / {stats.messageLimit}
+              {stats.messagesSent} / {isUnlimited ? '∞' : stats.messageLimit}
             </span>
           </div>
           <Progress value={msgPercent} className="h-1.5" />
@@ -60,6 +82,7 @@ export function Sidebar({
   userName,
   userEmail,
   userInitial,
+  userPlan = 'free',
   isSheet: _isSheet,
   onNavClick,
 }: SidebarProps) {
@@ -87,10 +110,13 @@ export function Sidebar({
     router.push('/');
   };
 
+  const isFree = userPlan === 'free';
+
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/documents', label: 'Documents', icon: FileText },
     { href: '/chat', label: 'Chats', icon: MessageSquare },
+    { href: '/billing', label: 'Billing', icon: CreditCard },
   ];
 
   return (
@@ -138,6 +164,20 @@ export function Sidebar({
         ) : usageStats ? (
           <UsageBadge stats={usageStats} />
         ) : null}
+
+        {/* Upgrade button for free users */}
+        {isFree && usageStats && (
+          <div className="mt-3">
+            <Link
+              href="/billing"
+              className="flex w-full items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+              onClick={onNavClick}
+            >
+              <Crown className="h-4 w-4 shrink-0" />
+              <span>Upgrade to Pro</span>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* User section */}

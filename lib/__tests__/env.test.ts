@@ -18,6 +18,9 @@ function fullValidEnv(): Record<string, string> {
     CLOUDINARY_CLOUD_NAME: 'cloud',
     CLOUDINARY_API_KEY: 'cloud-key',
     CLOUDINARY_API_SECRET: 'cloud-secret',
+    RAZORPAY_KEY_ID: 'rzp_test_abc123',
+    RAZORPAY_KEY_SECRET: 'rzp_test_secret',
+    RAZORPAY_WEBHOOK_SECRET: 'webhook_secret',
   };
 }
 

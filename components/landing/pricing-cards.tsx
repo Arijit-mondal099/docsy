@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Check } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -13,62 +13,148 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { getAllPlans } from '@/lib/payments/plans';
+import { createPaymentOrder } from '@/lib/api';
+
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+  error?: { description: string };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  on: (event: string, handler: (response: RazorpayResponse) => void) => void;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Razorpay constructor accepts dynamic options
+type RazorpayConstructor = new (options: any) => RazorpayInstance;
+
+declare global {
+  interface Window {
+    Razorpay: RazorpayConstructor;
+  }
+}
 
 type TabId = 'free' | 'monthly' | 'yearly';
 
-const tabs: { id: TabId; label: string }[] = [
-  { id: 'free', label: 'Free' },
-  { id: 'monthly', label: 'Monthly' },
-  { id: 'yearly', label: 'Yearly' },
-];
-
-const plans: Record<
-  TabId,
-  {
-    name: string;
-    price: string;
-    period?: string;
-    description: string;
-    features: string[];
-    cta: string;
-    href: string;
-    badge?: string;
-  }
-> = {
-  free: {
-    name: 'Free',
-    price: '$0',
-    description: 'Perfect for getting started',
-    features: ['5 documents', '50 messages per month', 'Basic AI model'],
-    cta: 'Get Started',
-    href: '/register',
-  },
-  monthly: {
-    name: 'Pro',
-    price: '$19',
-    period: '/month',
-    description: 'For power users',
-    features: ['Unlimited documents', 'Unlimited messages', 'GPT-4o + Gemini', 'Priority support'],
-    cta: 'Subscribe',
-    href: '/register',
-    badge: 'Most Popular',
-  },
-  yearly: {
-    name: 'Pro',
-    price: '$190',
-    period: '/year',
-    description: 'Best value — two months free',
-    features: ['Unlimited documents', 'Unlimited messages', 'GPT-4o + Gemini', 'Priority support'],
-    cta: 'Subscribe',
-    href: '/register',
-    badge: 'Save 17%',
-  },
+const tabMap: Record<TabId, { id: TabId; label: string; planId: Plan['id'] }> = {
+  free: { id: 'free', label: 'Free', planId: 'free' },
+  monthly: { id: 'monthly', label: 'Monthly', planId: 'pro_monthly' },
+  yearly: { id: 'yearly', label: 'Yearly', planId: 'pro_yearly' },
 };
+
+const tabs = Object.values(tabMap);
 
 export function PricingCards() {
   const [activeTab, setActiveTab] = useState<TabId>('free');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const plan = plans[activeTab];
+  const currentTab = tabMap[activeTab];
+  const plan = getAllPlans().find((p) => p.id === currentTab.planId);
+
+  if (!plan) {
+    return null;
+  }
+
+  const handleSubscribe = async () => {
+    if (!plan || plan.id === 'free') {
+      router.push('/register');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await createPaymentOrder(plan.id);
+
+      if (!response.orderId) {
+        throw new Error('Failed to create payment order');
+      }
+
+      // Load Razorpay script dynamically
+      if (!window.Razorpay) {
+        await loadRazorpayScript();
+      }
+
+      const options = {
+        key: response.keyId,
+        amount: response.amount,
+        currency: response.currency,
+        name: 'Docsy',
+        description: `${plan.name} - ${plan.period}`,
+        order_id: response.orderId,
+        handler: async (razorpayResponse: RazorpayResponse) => {
+          try {
+            // Verify payment on backend
+            await verifyPayment({
+              razorpay_order_id: razorpayResponse.razorpay_order_id,
+              razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+              razorpay_signature: razorpayResponse.razorpay_signature,
+            });
+
+            // Redirect to dashboard with success
+            router.push('/dashboard?payment=success');
+          } catch (error) {
+            console.error('Payment verification failed:', error);
+            alert('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: '',
+          email: '',
+        },
+        theme: {
+          color: '#0f172a',
+        },
+        modal: {
+          ondismiss: () => {
+            console.log('Payment modal dismissed');
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', (response: RazorpayResponse) => {
+        console.error('Payment failed:', response.error);
+        alert(`Payment failed: ${response.error.description}`);
+      });
+      rzp.open();
+    } catch (error) {
+      console.error('Subscription error:', error);
+      alert('Failed to initiate payment. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  async function loadRazorpayScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Razorpay script'));
+      document.body.appendChild(script);
+    });
+  }
+
+  async function verifyPayment(data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }) {
+    const res = await fetch('/api/payments/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Payment verification failed');
+    }
+  }
 
   return (
     <section id="pricing" className="scroll-mt-24 px-4 py-20 md:py-28">
@@ -111,21 +197,25 @@ export function PricingCards() {
           >
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-brand/[0.02]" />
             <CardHeader>
-              {plan.badge && (
+              {plan?.badge && (
                 <Badge variant="brand" className="mb-2 w-fit">
                   {plan.badge}
                 </Badge>
               )}
-              <CardTitle className="text-2xl">{plan.name}</CardTitle>
-              <CardDescription>{plan.description}</CardDescription>
+              <CardTitle className="text-2xl">{plan?.name}</CardTitle>
+              <CardDescription>{plan?.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold">{plan.price}</span>
-                {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
+                <span className="text-4xl font-bold">
+                  {plan?.currency === 'INR'
+                    ? `₹${(plan.price / 100).toFixed(0)}`
+                    : `$${(plan.price / 100).toFixed(0)}`}
+                </span>
+                {plan?.period && <span className="text-muted-foreground">/{plan.period}</span>}
               </div>
               <ul className="space-y-3">
-                {plan.features.map((feature) => (
+                {plan?.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3 text-sm">
                     <Check className="size-4 shrink-0 text-brand" />
                     <span>{feature}</span>
@@ -134,9 +224,16 @@ export function PricingCards() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Link href={plan.href} className="w-full">
-                <Button className="w-full">{plan.cta}</Button>
-              </Link>
+              <Button className="w-full" onClick={handleSubscribe} disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  plan?.cta
+                )}
+              </Button>
             </CardFooter>
           </Card>
         </div>
