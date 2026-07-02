@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const userPlan = (session.user as { plan?: string }).plan || 'free';
 
   return (
-    <div className="min-h-screen overflow-hidden bg-muted/30">
+    <div className="min-h-screen lg:h-dvh overflow-hidden bg-muted/30">
       {/* Mobile header — visible on screens < lg */}
       <header className="flex h-16 items-center gap-3 border-b bg-background px-4 lg:hidden">
         <Sheet>
