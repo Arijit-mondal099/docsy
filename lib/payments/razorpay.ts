@@ -45,6 +45,7 @@ export async function createOrder(params: CreateOrderParams) {
 
 export async function createSubscription(params: CreateSubscriptionParams) {
   const rzp = getRazorpay();
+  /* eslint-disable @typescript-eslint/no-explicit-any -- Razorpay SDK types omit customer_id */
   return rzp.subscriptions.create({
     plan_id: params.planId,
     customer_id: params.customerId,
@@ -52,7 +53,8 @@ export async function createSubscription(params: CreateSubscriptionParams) {
     quantity: params.quantity ?? 1,
     customer_notify: params.customerNotify ?? true,
     start_at: params.startAt,
-  } as Record<string, unknown>);
+  } as any);
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 }
 
 export async function cancelSubscription(subscriptionId: string, cancelAtPeriodEnd = true) {

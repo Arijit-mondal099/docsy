@@ -9,6 +9,7 @@ import {
   cancelSubscription,
   fetchPaymentHistory,
   createPaymentOrder,
+  type Subscription,
 } from '@/lib/api';
 import { getAllPlans } from '@/lib/payments/plans';
 import { Button } from '@/components/ui/button';
@@ -25,16 +26,19 @@ import {
 import { Loader2, CreditCard, Calendar, CheckCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 
-interface RazorpayResponse {
+interface RazorpaySuccessResponse {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
-  error?: { description: string };
+}
+
+interface RazorpayErrorResponse {
+  error: { description: string };
 }
 
 interface RazorpayInstance {
   open: () => void;
-  on: (event: string, handler: (response: RazorpayResponse) => void) => void;
+  on: (event: string, handler: (response: RazorpayErrorResponse) => void) => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Razorpay constructor accepts dynamic options
@@ -108,7 +112,7 @@ export default function BillingPage() {
         name: 'Docsy',
         description: `${selectedPlan.name} - ${selectedPlan.period}`,
         order_id: response.orderId,
-        handler: async (razorpayResponse: RazorpayResponse) => {
+        handler: async (razorpayResponse: RazorpaySuccessResponse) => {
           try {
             const verifyRes = await fetch('/api/payments/verify', {
               method: 'POST',
@@ -146,7 +150,7 @@ export default function BillingPage() {
       };
 
       const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', (response: RazorpayResponse) => {
+      rzp.on('payment.failed', (response: RazorpayErrorResponse) => {
         console.error('Payment failed:', response.error);
         alert(`Payment failed: ${response.error.description}`);
         setIsCheckingOut(false);
